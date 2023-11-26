@@ -1,44 +1,134 @@
-﻿@{
+﻿@model List<QuarterlySales.Models.SalesData>
+
+@{
     ViewData["Title"] = "Quarterly Sales";
 }
 
 <div class="container mt-5">
     <h1>Quarterly Sales</h1>
 
-   
     <div class="row">
-        <div class="col-md-6">
-            <div class="form-group d-flex">
-                <label class="mr-2" for="employeeDropdown">Select Employee:</label>
-                <select class="form-control" id="employeeDropdown">
-                    <!-- Populate dropdown options with employee names -->
-                    @foreach (var employee in ViewBag.Employees)
+       @* Employee Dropdown *@
+@* Employee Dropdown *@
+<div class="col-md-3">
+    <div class="form-group">
+        <label for="employeeDropdown">Select Employee:</label>
+        <select class="form-control" id="employeeDropdown" onchange="filterSalesData()">
+            <option value="">All Employees</option>
+            @foreach (var employee in ViewBag.Employees)
+            {
+                var employeeName = $"{employee.Firstname} {employee.Lastname}";
+                        <option value="@employee.EmployeeId" selected="@(ViewBag.FilterEmployee == employee.EmployeeId)">
+                            @employeeName
+                        </option>
+            }
+        </select>
+    </div>
+</div>
+
+
+        @* Year Dropdown *@
+        <div class="col-md-3">
+            <div class="form-group">
+                <label for="yearDropdown">Select Year:</label>
+                <select class="form-control" id="yearDropdown" onchange="filterSalesData()">
+                    <option value="">All Years</option>
+                    @foreach (var year in Model.Select(s => s.Year).Distinct().OrderByDescending(y => y))
                     {
-                        <option value="@employee.EmployeeId">@($"{employee.Firstname} {employee.Lastname}")</option>
+                        <option value="@year" selected="@(ViewBag.FilterYear == year)">@year</option>
                     }
                 </select>
             </div>
         </div>
-        <div class="col-md-6">
-            <button class="btn btn-primary" onclick="filterSalesData()">Filter</button>
+
+        @* Quarter Dropdown *@
+        <div class="col-md-3">
+            <div class="form-group">
+                <label for="quarterDropdown">Select Quarter:</label>
+                <select class="form-control" id="quarterDropdown" onchange="filterSalesData()">
+                    <option value="">All Quarters</option>
+                    @foreach (var quarter in Model.Select(s => s.Quarter).Distinct().OrderByDescending(q => q))
+                    {
+                        <option value="@quarter" selected="@(ViewBag.FilterQuarter == quarter)">@quarter</option>
+                    }
+                </select>
+            </div>
+        </div>
+
+        @* Records per Page Dropdown *@
+        <div class="col-md-3">
+            <div class="form-group">
+                <label for="pageSizeDropdown">Records per Page:</label>
+                <select class="form-control" id="pageSizeDropdown" onchange="changePageSize()">
+                    <option value="5" selected="@(ViewBag.PageSize == 5)">5</option>
+                    <option value="10" selected="@(ViewBag.PageSize == 10)">10</option>
+                    <option value="20" selected="@(ViewBag.PageSize == 20)">20</option>
+                </select>
+            </div>
         </div>
     </div>
 
-    <!-- Sales Data Table as a Bootstrap Card -->
+    @* Sales Data Table *@
     <div class="card mt-4">
         <div class="card-body">
             <table class="table table-striped" id="salesDataTable">
                 <thead>
                     <tr>
-                        <th>Quarter</th>
-                        <th>Year</th>
-                        <th>Amount</th>
+                        <th>
+                            <a href="#" onclick="sort('Employee')">Employee</a>
+                        </th>
+                        <th>
+                            <a href="#" onclick="sort('Quarter')">Quarter</a>
+                        </th>
+                        <th>
+                            <a href="#" onclick="sort('Year')">Year</a>
+                        </th>
+                        <th>
+                            <a href="#" onclick="sort('Amount')">Amount</a>
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- Sales data rows will be added here -->
+                    @foreach (var item in Model)
+                    {
+                        var employeeName = "Unknown";
+
+                        foreach (var employee in ViewBag.Employees)
+                        {
+                            if (employee.EmployeeId == item.EmployeeId)
+                            {
+                                employeeName = $"{employee.Firstname} {employee.Lastname}";
+                                break;
+                            }
+                        }
+
+                        <tr>
+                            <td>@employeeName</td>
+                            <td>@item.Quarter</td>
+                            <td>@item.Year</td>
+                            <td>@item.Amount</td>
+                        </tr>
+                    }
                 </tbody>
             </table>
+        </div>
+    </div>
+
+
+
+
+
+    @* Pagination *@
+    <div class="row mt-3">
+        <div class="col-md-12 text-center">
+            <ul class="pagination">
+                @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                {
+                    <li class="page-item @(ViewBag.CurrentPage == i ? "active" : "")">
+                        <a class="page-link" href="#" onclick="changePage(@i)">@i</a>
+                    </li>
+                }
+            </ul>
         </div>
     </div>
 </div>
@@ -46,37 +136,31 @@
 @section scripts {
     <script>
         function filterSalesData() {
-            // Get selected employee id from dropdown
             var employeeId = $("#employeeDropdown").val();
+            var year = $("#yearDropdown").val();
+            var quarter = $("#quarterDropdown").val();
 
-            
-            $.ajax({
-                url: `/Home/GetSalesData?employeeId=${employeeId}`,
-                method: "GET",
-                success: function (data) {
-                    // Update the sales data table with the retrieved data
-                    updateSalesDataTable(data);
-                },
-                error: function () {
-                    alert("Error retrieving sales data.");
-                }
-            });
+            window.location.href = `/Home/Index?page=1&pageSize=@ViewBag.PageSize&sortBy=@ViewBag.SortBy&sortOrder=@ViewBag.SortOrder&filterEmployee=${employeeId}&filterYear=${year}&filterQuarter=${quarter}`;
         }
 
-        function updateSalesDataTable(data) {
-            // Clear existing table rows
-            $("#salesDataTable tbody").empty();
+        function sort(column) {
+            var currentSortBy = '@ViewBag.SortBy';
+            var currentSortOrder = '@ViewBag.SortOrder';
 
-            // Populate table with new sales data
-            data.forEach(function (item) {
-                $("#salesDataTable tbody").append(
-                    `<tr>
-                                <td>${item.quarter}</td>
-                                <td>${item.year}</td>
-                                <td>${item.amount}</td>
-                            </tr>`
-                );
-            });
+            var newSortOrder = currentSortBy === column ?
+                (currentSortOrder === 'asc' ? 'desc' : 'asc') :
+                'asc';
+
+            window.location.href = `/Home/Index?page=1&pageSize=@ViewBag.PageSize&sortBy=${column}&sortOrder=${newSortOrder}&filterEmployee=@ViewBag.FilterEmployee&filterYear=@ViewBag.FilterYear&filterQuarter=@ViewBag.FilterQuarter`;
+        }
+
+        function changePage(page) {
+            window.location.href = `/Home/Index?page=${page}&pageSize=@ViewBag.PageSize&sortBy=@ViewBag.SortBy&sortOrder=@ViewBag.SortOrder&filterEmployee=@ViewBag.FilterEmployee&filterYear=@ViewBag.FilterYear&filterQuarter=@ViewBag.FilterQuarter`;
+        }
+
+        function changePageSize() {
+            var newPageSize = $("#pageSizeDropdown").val();
+            window.location.href = `/Home/Index?page=1&pageSize=${newPageSize}&sortBy=@ViewBag.SortBy&sortOrder=@ViewBag.SortOrder&filterEmployee=@ViewBag.FilterEmployee&filterYear=@ViewBag.FilterYear&filterQuarter=@ViewBag.FilterQuarter`;
         }
     </script>
 }

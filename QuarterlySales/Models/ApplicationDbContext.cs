@@ -16,7 +16,7 @@ namespace QuarterlySales.Models
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // Configure your entity relationships or additional model configurations here
+           
 
             // Add seed data for employees
             modelBuilder.Entity<Employee>().HasData(

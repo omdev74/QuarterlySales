@@ -51,8 +51,7 @@ namespace QuarterlySales.Controllers
         }
 
         // POST: SalesData/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("SalesDataId,Quarter,Year,Amount,EmployeeId")] SalesData salesData)
@@ -83,8 +82,7 @@ namespace QuarterlySales.Controllers
         }
 
         // POST: SalesData/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("SalesDataId,Quarter,Year,Amount,EmployeeId")] SalesData salesData)

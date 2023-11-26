@@ -16,7 +16,7 @@ public class DateAfterAttribute : ValidationAttribute
     {
         if (value is null)
         {
-            return ValidationResult.Success; // or provide an appropriate validation result for null values
+            return ValidationResult.Success;
         }
 
         if (value is not DateTime date)

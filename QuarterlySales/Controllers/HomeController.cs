@@ -9,12 +9,12 @@ namespace QuarterlySales.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        private readonly ApplicationDbContext _context; // Add this line
+        private readonly ApplicationDbContext _context;
 
-        public HomeController(ILogger<HomeController> logger, ApplicationDbContext context) // Add ApplicationDbContext as a parameter
+        public HomeController(ILogger<HomeController> logger, ApplicationDbContext context) 
         {
             _logger = logger;
-            _context = context; // Assign the context
+            _context = context; 
         }
 
         public IActionResult Index()

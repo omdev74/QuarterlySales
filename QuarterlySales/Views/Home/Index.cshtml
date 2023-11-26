@@ -1,0 +1,82 @@
+﻿@{
+    ViewData["Title"] = "Quarterly Sales";
+}
+
+<div class="container mt-5">
+    <h1>Quarterly Sales</h1>
+
+    <!-- Employee Dropdown and Filter Button in a Bootstrap Row -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group d-flex">
+                <label class="mr-2" for="employeeDropdown">Select Employee:</label>
+                <select class="form-control" id="employeeDropdown">
+                    <!-- Populate dropdown options with employee names -->
+                    @foreach (var employee in ViewBag.Employees)
+                    {
+                        <option value="@employee.EmployeeId">@($"{employee.Firstname} {employee.Lastname}")</option>
+                    }
+                </select>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <button class="btn btn-primary" onclick="filterSalesData()">Filter</button>
+        </div>
+    </div>
+
+    <!-- Sales Data Table as a Bootstrap Card -->
+    <div class="card mt-4">
+        <div class="card-body">
+            <table class="table table-striped" id="salesDataTable">
+                <thead>
+                    <tr>
+                        <th>Quarter</th>
+                        <th>Year</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Sales data rows will be dynamically added here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        function filterSalesData() {
+            // Get selected employee id from dropdown
+            var employeeId = $("#employeeDropdown").val();
+
+            // Make an AJAX request to get sales data for the selected employee
+            $.ajax({
+                url: `/Home/GetSalesData?employeeId=${employeeId}`,
+                method: "GET",
+                success: function (data) {
+                    // Update the sales data table with the retrieved data
+                    updateSalesDataTable(data);
+                },
+                error: function () {
+                    alert("Error retrieving sales data.");
+                }
+            });
+        }
+
+        function updateSalesDataTable(data) {
+            // Clear existing table rows
+            $("#salesDataTable tbody").empty();
+
+            // Populate table with new sales data
+            data.forEach(function (item) {
+                $("#salesDataTable tbody").append(
+                    `<tr>
+                                <td>${item.quarter}</td>
+                                <td>${item.year}</td>
+                                <td>${item.amount}</td>
+                            </tr>`
+                );
+            });
+        }
+    </script>
+}
